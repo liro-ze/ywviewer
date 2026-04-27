@@ -24,4 +24,4 @@ Thanks to the many contribators for their past works on Level-5 games to make th
 - https://github.com/Ploaj/Metanoia
 - https://github.com/onepiecefreak3/CfgBinEditor
 - https://github.com/onepiecefreak3/XtractQuery
-- https://github.com/onepiecefreak3/Level5ResssourceEditor
+- https://github.com/onepiecefreak3/Level5RessourceEditor
