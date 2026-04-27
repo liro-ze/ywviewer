@@ -83,7 +83,7 @@ bool file_xpck::BuildArchive(res_archive* archive)
             info.fileName = std::string(strName, strlen(strName));
             info.dataSize = dataSize;
 
-            archive->m_fileData.push_back(info);
+            archive->m_filelist.push_back(info);
         }
 
         delete decompNameData;

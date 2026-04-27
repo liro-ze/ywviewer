@@ -17,16 +17,30 @@ public:
 public:
     size_t GetFileCount() const
     {
-        return m_fileData.size();
+        return m_filelist.size();
     }
 
     file_info* GetFileInfoByIdx(size_t idx)
     {
-        return idx >= m_fileData.size() ? nullptr : &m_fileData[idx];
+        return idx >= m_filelist.size() ? nullptr : &m_filelist[idx];
     }
 
     void Destroy();
 
 private:
-    std::vector<file_info> m_fileData;
+    std::vector<file_info> m_filelist;
+};
+
+class res_image
+{
+    friend class file_xi;
+
+public:
+
+private:
+    int m_imageCount;
+    int m_width;
+    int m_height;
+    int m_format;
+    int m_bitDepth;
 };

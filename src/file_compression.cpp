@@ -19,7 +19,7 @@ unsigned char* DecompressBuffer_Lz10(unsigned char* data, size_t size, size_t de
 
     int flags = 0, mask = 1;
 
-    while (stream.cursor < stream.data_size && output.data_size < decomp_size)
+    while (output.data_size < decomp_size)
     {
         if (mask == 1)
         {
@@ -54,6 +54,63 @@ unsigned char* DecompressBuffer_Lz10(unsigned char* data, size_t size, size_t de
     return buffer;
 }
 
+unsigned char* DecompressBuffer_Huffman(unsigned char* data, size_t size, size_t decomp_size, bool is8bit)
+{
+    unsigned char* buffer = new unsigned char[decomp_size];
+
+    file_stream output = FileStreamBuild(buffer);
+    file_stream stream = FileStreamBuild(data, size);
+
+    uint8_t tree_size = FileStreamReadUint8(&stream);
+    uint8_t tree_root = FileStreamPeekUint8(&stream);
+
+    uint8_t* tree_buffer = stream.data + stream.cursor;
+    FileStreamSetCursor(&stream, stream.cursor + size_t(tree_size * 2));
+
+    uint8_t lsb_part = 0x80;
+    uint8_t pos = tree_root;
+
+    int i = 0, code = 0, next = 0;
+
+    while (output.data_size < decomp_size)
+    {
+        if (i % 32 == 0)
+            code = FileStreamReadUint32(&stream);
+
+        next += ((pos & 0x3F) << 1) + 2;
+        
+        int dir = (code >> (31 - i)) % 2 == 0 ? 2 : 1;
+        bool leaf = (pos >> 5 >> dir) % 2 != 0;
+
+        pos = tree_buffer[next - dir];
+        
+        if (leaf)
+        {
+            if (is8bit)
+            {
+                FileStreamWriteUint8(&output, pos);
+            }
+            else
+            {
+                if ((lsb_part & 0x80) != 0)
+                {
+                    lsb_part = pos;
+                }
+                else
+                {
+                    FileStreamWriteUint8(&output, (pos << 4) | lsb_part);
+                    lsb_part = 0x80;
+                }
+            }
+
+            pos = tree_root;
+            next = 0;
+        }
+
+        i++;
+    }
+}
+
 unsigned char* DecompressBuffer_Rle(unsigned char* data, size_t size, size_t decomp_size)
 {
     unsigned char* buffer = new unsigned char[decomp_size];
@@ -61,21 +118,21 @@ unsigned char* DecompressBuffer_Rle(unsigned char* data, size_t size, size_t dec
     file_stream output = FileStreamBuild(buffer);
     file_stream stream = FileStreamBuild(data, size);
 
-    while (stream.cursor < stream.data_size && output.data_size < decomp_size)
+    while (output.data_size < decomp_size)
     {
-        uint8_t flag = FileStreamReadUint8(&stream);
-        if ((flag & 0x80) > 0)
+        uint8_t flags = FileStreamReadUint8(&stream);
+        if ((flags & 0x80) > 0)
         {
             uint8_t byte = FileStreamReadUint8(&stream);
-            uint8_t reps = (flag & 0x7F) + 3;
+            uint8_t reps = (flags & 0x7F) + 3;
 
             for (uint8_t i = 0; i < reps; i++)
                 FileStreamWriteUint8(&output, byte);
         }
         else
         {
-            uint8_t len = flag + 1;
-            for (uint8_t i = 0; i < len; i++)
+            uint8_t length = flags + 1;
+            for (uint8_t i = 0; i < length; i++)
                 FileStreamWriteUint8(&output, FileStreamReadUint8(&stream));
         }
     }
@@ -98,7 +155,12 @@ unsigned char* DecompressBuffer(unsigned char* data, size_t size, size_t* decomp
             *decomp_size = (size_t(data[0]) >> 3 | size_t(data[1]) << 5 | size_t(data[2]) << 13 | size_t(data[3]) << 21);
             return DecompressBuffer_Lz10(data + 4, size, *decomp_size);
         }
-        case file_comp_type::RTLE: {
+        case file_comp_type::HFM4:
+        case file_comp_type::HFM8: {
+            *decomp_size = (size_t(data[0]) >> 3 | size_t(data[1]) << 5 | size_t(data[2]) << 13 | size_t(data[3]) << 21);
+            return DecompressBuffer_Huffman(data + 4, size, *decomp_size, type == file_comp_type::HFM8);
+        }
+        case file_comp_type::RLE: {
             *decomp_size = (size_t(data[0]) >> 3 | size_t(data[1]) << 5 | size_t(data[2]) << 13 | size_t(data[3]) << 21);
             return DecompressBuffer_Rle(data + 4, size, *decomp_size);
         }
