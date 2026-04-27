@@ -1,6 +1,9 @@
 # Step 1: YW-Viewer
 A utlity to open game files
 
+<img src="./.github/showcase.png">
+
+
 # Planned Features
 - Model Viewer
 - Map Viewer
