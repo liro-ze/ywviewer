@@ -109,6 +109,8 @@ unsigned char* DecompressBuffer_Huffman(unsigned char* data, size_t size, size_t
 
         i++;
     }
+
+    return buffer;
 }
 
 unsigned char* DecompressBuffer_Rle(unsigned char* data, size_t size, size_t decomp_size)
