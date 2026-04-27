@@ -54,6 +54,35 @@ unsigned char* DecompressBuffer_Lz10(unsigned char* data, size_t size, size_t de
     return buffer;
 }
 
+unsigned char* DecompressBuffer_Rle(unsigned char* data, size_t size, size_t decomp_size)
+{
+    unsigned char* buffer = new unsigned char[decomp_size];
+
+    file_stream output = FileStreamBuild(buffer);
+    file_stream stream = FileStreamBuild(data, size);
+
+    while (stream.cursor < stream.data_size && output.data_size < decomp_size)
+    {
+        uint8_t flag = FileStreamReadUint8(&stream);
+        if ((flag & 0x80) > 0)
+        {
+            uint8_t byte = FileStreamReadUint8(&stream);
+            uint8_t reps = (flag & 0x7F) + 3;
+
+            for (uint8_t i = 0; i < reps; i++)
+                FileStreamWriteUint8(&output, byte);
+        }
+        else
+        {
+            uint8_t len = flag + 1;
+            for (uint8_t i = 0; i < len; i++)
+                FileStreamWriteUint8(&output, FileStreamReadUint8(&stream));
+        }
+    }
+
+    return buffer;
+}
+
 unsigned char* DecompressBuffer(unsigned char* data, size_t size, size_t* decomp_size)
 {
     /*
@@ -68,6 +97,10 @@ unsigned char* DecompressBuffer(unsigned char* data, size_t size, size_t* decomp
         case file_comp_type::LZ10: {
             *decomp_size = (size_t(data[0]) >> 3 | size_t(data[1]) << 5 | size_t(data[2]) << 13 | size_t(data[3]) << 21);
             return DecompressBuffer_Lz10(data + 4, size, *decomp_size);
+        }
+        case file_comp_type::RTLE: {
+            *decomp_size = (size_t(data[0]) >> 3 | size_t(data[1]) << 5 | size_t(data[2]) << 13 | size_t(data[3]) << 21);
+            return DecompressBuffer_Rle(data + 4, size, *decomp_size);
         }
         default: {
             *decomp_size = (size - 4);

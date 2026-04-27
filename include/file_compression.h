@@ -7,7 +7,6 @@ enum class file_comp_type : int
     HFM4 = 2, // Huffman 4-bit
     HFM8 = 3, // Huffman 8-bit
     RTLE = 4, // Runtime Length Encoding
-    ZLIB = 5, // Zlib Inflate
 };
 
 unsigned char* DecompressBuffer(unsigned char* data, size_t size, size_t* decomp_size);

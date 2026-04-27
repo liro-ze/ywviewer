@@ -1,5 +1,6 @@
 #include "app_state.h"
 #include "file_loader.h"
+#include "res_def.h"
 
 #include "imgui/rl_imgui.h"
 #include "imgui_internal.h"
@@ -40,6 +41,12 @@ void BuildFileInfo(file_info* info)
 
 void AddTab(app_state* state, file_type type, file_info* info)
 {
+    for (size_t i = 0; i < state->opened_tabs.size(); i++)
+    {
+        if (state->opened_tabs[i].type == type && state->opened_tabs[i].file->path == info->path)
+            return;
+    }
+
     tab_info tab = {};
     tab.name = info->name + GetFileTypeStr(type);
     tab.type = type;
@@ -54,8 +61,8 @@ void AddTab(app_state* state, file_type type, file_info* info)
         switch (type)
         {
             case file_type::ARCHIVE: {
-                tab.data = new file_archive();
-                succ = f->BuildArchive((file_archive*)tab.data);
+                tab.data = new res_archive();
+                succ = f->BuildArchive((res_archive*)tab.data);
                 break;
             }
             default: {
@@ -76,9 +83,23 @@ void AddTab(app_state* state, file_type type, file_info* info)
     state->opened_tabs.push_back(tab);
 }
 
-void RemoveTab(app_state* state)
+void RemoveTab(app_state* state, tab_info* info)
 {
-    
+    if (info->data != nullptr)
+    {
+        switch (info->type)
+        {
+            case file_type::ARCHIVE:
+                ((res_archive*)info->data)->Destroy();
+                break;
+            default:
+                break;
+        }
+
+        delete info->data;
+    }
+
+    state->opened_tabs.erase(state->opened_tabs.begin() + (info - state->opened_tabs.data()));
 }
 
 void CloseProject(app_state* state)
@@ -89,21 +110,16 @@ void CloseProject(app_state* state)
     }
 
     for (size_t i = 0; i < state->opened_tabs.size(); i++)
-    {
-        if (state->opened_tabs[i].data != nullptr)
-        {
-            //delete state->opened_tabs[i].data;
-        }
-    }
+        RemoveTab(state, &state->opened_tabs[i]);
 
     memset(state, 0, sizeof(app_state));
 }
 
-void UpdateContent_Archive(app_state* state, file_archive* archive)
+void UpdateContent_Archive(app_state* state, res_archive* archive)
 {
     for (size_t i = 0; i < archive->GetFileCount(); i++)
     {
-        file_archive::file_archive_info* info = archive->GetFileInfoByIdx(i);
+        res_archive::file_info* info = archive->GetFileInfoByIdx(i);
         ImGui::Text(info->fileName.c_str());
     }
 }
@@ -119,7 +135,7 @@ void UpdateTabView(app_state* state, tab_info* info)
                 switch (info->type)
                 {
                     case file_type::ARCHIVE:
-                        UpdateContent_Archive(state, (file_archive*)info->data);
+                        UpdateContent_Archive(state, (res_archive*)info->data);
                         break;
                     default:
                         break;
@@ -138,7 +154,7 @@ void UpdateTabView(app_state* state, tab_info* info)
 
     if (!info->opened)
     {
-        //RemoveTab(state);
+        RemoveTab(state, info);
     }
 }
 

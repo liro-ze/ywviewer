@@ -1,5 +1,5 @@
 # Step 1: YW-Viewer
-A software to open game files
+A software to open game files. Currently focusing on YW1 3DS, formats from newer games or newer platforms may not work.
 
 <img src="./.github/showcase.png">
 

@@ -1,4 +1,5 @@
 #include "file_def.h"
+#include "res_def.h"
 #include "file_stream.h"
 #include "file_compression.h"
 
@@ -27,7 +28,7 @@ void file_xpck::Unload()
     }
 }
 
-bool file_xpck::BuildArchive(file_archive* archive)
+bool file_xpck::BuildArchive(res_archive* archive)
 {
     if (m_data == nullptr || m_size <= 0)
         return false;
@@ -78,7 +79,7 @@ bool file_xpck::BuildArchive(file_archive* archive)
 
             const char* strName = (const char*)(decompNameData + nameOffset);
 
-            file_archive::file_archive_info info = {};
+            res_archive::file_info info = {};
             info.fileName = std::string(strName, strlen(strName));
             info.dataSize = dataSize;
 

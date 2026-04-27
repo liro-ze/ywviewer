@@ -1,15 +1,12 @@
 #pragma once
 
-#include <vector>
-#include <string>
-
 #include "file_type.h"
 
-class file_archive;
-class file_model;
-class file_image;
-class file_image_anim;
-class file_font;
+class res_archive;
+class res_model;
+class res_image;
+class res_image_anim;
+class res_font;
 
 class file
 {
@@ -26,15 +23,15 @@ public:
 
     virtual bool Load(const char* path) { return false; }
 
-    virtual bool BuildArchive(file_archive* archive) { return false; }
+    virtual bool BuildArchive(res_archive* archive) { return false; }
 
-    virtual bool BuildModel(file_model* model) { return false; }
+    virtual bool BuildModel(res_model* model) { return false; }
 
-    virtual bool BuildImage(file_image* image) { return false; }
+    virtual bool BuildImage(res_image* image) { return false; }
 
-    virtual bool BuildImageAnim(file_image_anim* image_anim) { return false; }
+    virtual bool BuildImageAnim(res_image_anim* image_anim) { return false; }
 
-    virtual bool BuildFont(file_font* font) { return false; }
+    virtual bool BuildFont(res_font* font) { return false; }
 
     virtual void Unload() { }
 
@@ -44,35 +41,6 @@ protected:
 
     unsigned char* m_data;
     int m_size;
-};
-
-class file_archive
-{
-    friend class file_xpck;
-
-public:
-    struct file_archive_info
-    {
-        std::string fileName;
-        size_t dataSize;
-    };
-
-public:
-    file_archive()
-    { }
-
-    size_t GetFileCount() const
-    {
-        return m_fileData.size();
-    }
-
-    file_archive_info* GetFileInfoByIdx(size_t idx)
-    {
-        return idx >= m_fileData.size()  ? nullptr : &m_fileData[idx];
-    }
-
-private:
-    std::vector<file_archive_info> m_fileData;
 };
 
 class file_xpck : public file
@@ -85,7 +53,19 @@ public:
     bool Load(const char* path) override;
     void Unload() override;
 
-    bool BuildArchive(file_archive* archive) override;
+    bool BuildArchive(res_archive* archive) override;
+};
+
+class file_xi : public file
+{
+public:
+    file_xi();
+
+public:
+    bool Load(const char* path) override;
+    void Unload() override;
+
+    bool BuildImage(res_image* image) override;
 };
 
 class file_xc : public file_xpck
@@ -94,7 +74,7 @@ public:
     file_xc();
 
 public:
-    bool BuildModel(file_model* model) override;
+    bool BuildModel(res_model* model) override;
 };
 
 class file_xr : public file_xpck
@@ -109,5 +89,5 @@ public:
     file_xa();
 
 public:
-    bool BuildImageAnim(file_image_anim* image_anim) override;
+    bool BuildImageAnim(res_image_anim* image_anim) override;
 };
