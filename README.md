@@ -10,7 +10,9 @@ A utlity to open game files
 
 # Build Requirements
 - CMake
-- Visual Studio 2022 (or Later)
+- C++ Compiler:
+    - Windows: Visual Studio 2022 (or Later)
+    - Linux/Other: Any should work
 
 # Build Steps
 ```bash
