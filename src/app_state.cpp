@@ -212,6 +212,23 @@ void UpdateHierachy(app_state* state, file_info* info)
     }
 }
 
+void UpdateAboutDialog(app_state* state)
+{
+    ImGui::SetNextWindowSize(ImVec2(320, 96));
+    
+    ImGui::Begin("About YW-Viewer", nullptr);
+
+    ImGui::Text("YW-Viewer: Version Dev");
+    ImGui::Text("2026 Liam/DEV");
+    
+    if (ImGui::Button("OK"))
+    {
+        state->about_dialog_shown = false;
+    }
+
+    ImGui::End();
+}
+
 void UpdateOpenDialog(app_state* state)
 {
     ImGui::SetNextWindowSize(ImVec2(320, 96));
@@ -330,6 +347,8 @@ bool UpdateAppState(app_state* state)
             ImGui::Separator();
 
             if (ImGui::MenuItem("About")) state->about_dialog_shown = true;
+
+            ImGui::EndMenu();
         }
 
         ImGui::EndMainMenuBar();
@@ -347,6 +366,7 @@ bool UpdateAppState(app_state* state)
         if (state->open_github_page)
         {
             OpenURL("https://github.com/liro-ze/ywviewer");
+            state->open_github_page = false;
         }
 
         if (state->about_dialog_shown)
