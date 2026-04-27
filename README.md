@@ -1,5 +1,5 @@
 # Step 1: YW-Viewer
-A utlity to open game files
+A software to open game files
 
 <img src="./.github/showcase.png">
 
