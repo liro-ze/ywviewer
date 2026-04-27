@@ -41,6 +41,7 @@ void BuildFileInfo(file_info* info)
 void AddTab(app_state* state, file_type type, file_info* info)
 {
     tab_info tab = {};
+    tab.name = info->name + GetFileTypeStr(type);
     tab.type = type;
     tab.file = info;
     tab.opened = true;
@@ -109,7 +110,7 @@ void UpdateContent_Archive(app_state* state, file_archive* archive)
 
 void UpdateTabView(app_state* state, tab_info* info)
 {
-    if (ImGui::BeginTabItem(info->file->name, &info->opened))
+    if (ImGui::BeginTabItem(info->name.c_str(), &info->opened))
     {
         ImGui::BeginChild((const char*)(info));
         {

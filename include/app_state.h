@@ -18,6 +18,7 @@ struct file_info
 
 struct tab_info
 {
+    std::string name;
     file_type type;
     file_info* file;
     bool opened;

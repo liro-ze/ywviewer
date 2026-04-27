@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstring>
+#include <string>
 #include <raylib.h>
 
 enum class file_type : int
@@ -63,4 +64,23 @@ inline bool IsFileFont(const char* path)
 {
     const char* path_ext = GetFileExtension(path);
     return strcmp(path_ext, ".xf") == 0;
+}
+
+inline std::string GetFileTypeStr(file_type type)
+{
+    switch (type)
+    {
+        case file_type::ARCHIVE:
+            return "[ARCHIVE]";
+        case file_type::MODEL:
+            return "[MODEL]";
+        case file_type::IMAGE:
+            return "[IMG]";
+        case file_type::IMAGE_ANIM:
+            return "[IMG ANIM]";
+        case file_type::FONT:
+            return "[FONT]";
+    }
+
+    return "[MISSING]";
 }
