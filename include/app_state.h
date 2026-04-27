@@ -27,6 +27,7 @@ struct tab_info
 struct app_state
 {
     bool app_exit;
+    bool app_init;
     
     char project_path[256];
     bool about_dialog_shown;

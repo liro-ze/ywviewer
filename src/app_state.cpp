@@ -319,9 +319,23 @@ bool UpdateAppState(app_state* state)
             
         ImGui::Dummy(ImVec2(0, ImGui::GetFrameHeight() - 4.0f));
 
-        ImGui::DockSpace(ImGui::GetID("Dock"), ImVec2(),
-            ImGuiDockNodeFlags_PassthruCentralNode
-        );
+        ImGuiID dockspaceId = ImGui::GetID("Dock");
+        ImGui::DockSpace(dockspaceId, ImVec2(), ImGuiDockNodeFlags_PassthruCentralNode);
+
+        if (!state->app_init)
+        {
+            ImGuiID nextId = dockspaceId;
+
+            ImGui::DockBuilderDockWindow("Hierachy", ImGui::DockBuilderSplitNode(
+                nextId, ImGuiDir_Left, 0.3f, nullptr, &nextId
+            ));
+
+            ImGui::DockBuilderDockWindow("Main", nextId);
+
+            ImGui::DockBuilderFinish(dockspaceId);
+
+            state->app_init = true;
+        }
 
         ImGui::End();
     }
