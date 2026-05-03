@@ -54,7 +54,7 @@ unsigned char* DecompressBuffer_Lz10(unsigned char* data, size_t size, size_t de
     return buffer;
 }
 
-unsigned char* DecompressBuffer_Huffman(unsigned char* data, size_t size, size_t decomp_size, bool is8bit)
+unsigned char* DecompressBuffer_Huffman(unsigned char* data, size_t size, size_t decomp_size, bool is_8bit)
 {
     unsigned char* buffer = new unsigned char[decomp_size];
 
@@ -62,7 +62,7 @@ unsigned char* DecompressBuffer_Huffman(unsigned char* data, size_t size, size_t
     file_stream stream = FileStreamBuild(data, size);
 
     uint8_t tree_size = FileStreamReadUint8(&stream);
-    uint8_t tree_root = FileStreamPeekUint8(&stream);
+    uint8_t tree_root = FileStreamReadUint8(&stream);
 
     uint8_t* tree_buffer = stream.data + stream.cursor;
     FileStreamSetCursor(&stream, stream.cursor + size_t(tree_size * 2));
@@ -86,7 +86,7 @@ unsigned char* DecompressBuffer_Huffman(unsigned char* data, size_t size, size_t
         
         if (leaf)
         {
-            if (is8bit)
+            if (is_8bit)
             {
                 FileStreamWriteUint8(&output, pos);
             }
@@ -144,12 +144,6 @@ unsigned char* DecompressBuffer_Rle(unsigned char* data, size_t size, size_t dec
 
 unsigned char* DecompressBuffer(unsigned char* data, size_t size, size_t* decomp_size)
 {
-    /*
-    
-    In compliance with Yo-kai Watch Engine, the default method is using no compression
-    
-    */
-
     file_comp_type type = static_cast<file_comp_type>(data[0] & 0x7);
     switch (type)
     {

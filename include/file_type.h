@@ -11,7 +11,8 @@ enum class file_type : int
     MODEL      = 4,
     IMAGE      = 8,
     FONT       = 16,
-    IMAGE_ANIM = 32
+    IMAGE_ANIM = 32,
+    SKY        = 64
 };
 
 enum class file_format : int

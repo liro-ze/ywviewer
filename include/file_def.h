@@ -23,6 +23,8 @@ public:
 
     virtual bool Load(const char* path) { return false; }
 
+    virtual bool LoadFromMemory(unsigned char* data, int size) { return false; }
+
     virtual bool BuildArchive(res_archive* archive) { return false; }
 
     virtual bool BuildModel(res_model* model) { return false; }
@@ -49,23 +51,13 @@ public:
     file_xpck();
     file_xpck(file_type type);
 
+    static bool GetFileByName(unsigned char** output, int* output_size, unsigned char* data, int size, const char* targetName);
+
 public:
     bool Load(const char* path) override;
     void Unload() override;
 
     bool BuildArchive(res_archive* archive) override;
-};
-
-class file_xi : public file
-{
-public:
-    file_xi();
-
-public:
-    bool Load(const char* path) override;
-    void Unload() override;
-
-    bool BuildImage(res_image* image) override;
 };
 
 class file_xc : public file_xpck
@@ -75,6 +67,34 @@ public:
 
 public:
     bool BuildModel(res_model* model) override;
+};
+
+class file_xf : public file_xpck
+{
+public:
+    file_xf();
+
+public:
+    bool BuildFont(res_font* font) override;
+};
+
+class file_xi : public file
+{
+public:
+    file_xi();
+
+public:
+    bool Load(const char* path) override;
+    bool LoadFromMemory(unsigned char* data, int size) override;
+    void Unload() override;
+
+    bool BuildImage(res_image* image) override;
+};
+
+class file_xk : public file_xpck
+{
+public:
+    file_xk();
 };
 
 class file_xr : public file_xpck

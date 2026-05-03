@@ -5,6 +5,8 @@
 #include "imgui/rl_imgui.h"
 #include "imgui_internal.h"
 
+#include <rlgl.h>
+
 void DestroyFileInfo(file_info* info)
 {
     for (unsigned int i = 0; i < info->children.count; i++)
@@ -65,6 +67,21 @@ void AddTab(app_state* state, file_type type, file_info* info)
                 succ = f->BuildArchive((res_archive*)tab.data);
                 break;
             }
+            case file_type::IMAGE: {
+                tab.data = new res_image();
+                succ = f->BuildImage((res_image*)tab.data);
+                break;
+            }
+            case file_type::IMAGE_ANIM: {
+                tab.data = new res_image_anim();
+                succ = f->BuildImageAnim((res_image_anim*)tab.data);
+                break;
+            }
+            case file_type::FONT: {
+                tab.data = new res_font();
+                succ = f->BuildFont((res_font*)tab.data);
+                break;
+            }
             default: {
                 break;
             }
@@ -92,6 +109,15 @@ void RemoveTab(app_state* state, tab_info* info)
             case file_type::ARCHIVE:
                 ((res_archive*)info->data)->Destroy();
                 break;
+            case file_type::IMAGE:
+                ((res_image*)info->data)->Destroy();
+                break;
+            case file_type::IMAGE_ANIM:
+                ((res_image_anim*)info->data)->Destroy();
+                break;
+            case file_type::FONT:
+                ((res_font*)info->data)->Destroy();
+                break;
             default:
                 break;
         }
@@ -107,12 +133,18 @@ void CloseProject(app_state* state)
     if (state->project_opened)
     {
         DestroyFileInfo(&state->project);
+
+        for (size_t i = 0; i < state->opened_tabs.size(); i++)
+            RemoveTab(state, &state->opened_tabs[i]);
+
+        state->opened_tabs.clear();
+
+        state->project_opened = false;
+        state->selected_file = nullptr;
+
+        memset(&state->project, 0, sizeof(state->project));
+        memset(&state->project_path, 0, sizeof(state->project_path));
     }
-
-    for (size_t i = 0; i < state->opened_tabs.size(); i++)
-        RemoveTab(state, &state->opened_tabs[i]);
-
-    memset(state, 0, sizeof(app_state));
 }
 
 void UpdateContent_Archive(app_state* state, res_archive* archive)
@@ -124,8 +156,85 @@ void UpdateContent_Archive(app_state* state, res_archive* archive)
     }
 }
 
+void UpdateContent_Image(app_state* state, res_image* image)
+{
+    ImGui::Text("Image: [WIDTH %d] [HEIGHT %d]", image->GetWidth(), image->GetHeight());
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+
+    std::vector<res_image::Image>& imageList = image->GetImages();
+    for (size_t i = 0; i < imageList.size(); i++)
+    {
+        if (!imageList[i].tex.id)
+            image->CreateTexture(&imageList[i]);
+
+        if (!state->open_dialog_shown && !state->about_dialog_shown)
+        {
+            DrawRectangle((int)pos.x, (int)pos.y, image->GetWidth(), image->GetHeight(), GREEN);
+            DrawTextureEx(imageList[i].tex, { pos.x, pos.y }, 0.0f, 1.0f, WHITE);
+        }
+    }
+}
+
+void UpdateContent_ImageAnim(app_state* state, res_image_anim* image_anim)
+{
+
+}
+
+void UpdateContent_Font(app_state* state, res_font* font)
+{
+    ImGui::Text("FONT [GLYPH COUNT %d]", font->GetGlyphCount());
+
+    static char buf[256];
+    ImGui::InputTextMultiline("Test the font", buf, sizeof(buf));
+
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+
+    std::vector<res_image::Image>& imageList = font->GetImage()->GetImages();
+    if (!imageList[0].tex.id)
+        font->GetImage()->CreateTexture(&imageList[0]);
+
+    size_t length = strlen(buf);
+
+    size_t offsetX = 0;
+    size_t offsetY = 0;
+
+    for (size_t i = 0; i < length; i++)
+    {
+        res_font::CharInfo* info = font->GetGlyphByCharCode(buf[i]);
+        if (info != nullptr)
+        {
+            BeginShaderMode(state->shader);
+
+            int value = info->imgIndex;
+            SetShaderValue(state->shader, state->channel0Loc, &value, SHADER_UNIFORM_INT);
+
+            DrawTexturePro(imageList[0].tex,
+                { (float)info->imgOffsetX, (float)info->imgOffsetY, (float)info->bounds->glyphWidth, (float)info->bounds->glyphHeight },
+                { pos.x + offsetX, pos.y + info->bounds->offsetY + offsetY, (float)info->bounds->glyphWidth, (float)info->bounds->glyphHeight },
+                { 0, 0 }, 0.0f, WHITE
+            );
+
+            offsetX += info->width;
+
+            EndShaderMode();
+
+            rlDrawRenderBatchActive();
+        }
+        else
+        {
+            if (buf[i] == '\n')
+            {
+                offsetY += font->GetLargeCharHeight();
+                offsetX = 0;
+            }
+        }
+    }
+}
+
 void UpdateTabView(app_state* state, tab_info* info)
 {
+    ImGui::PushID(info);
+
     if (ImGui::BeginTabItem(info->name.c_str(), &info->opened))
     {
         ImGui::BeginChild((const char*)(info));
@@ -137,10 +246,18 @@ void UpdateTabView(app_state* state, tab_info* info)
                     case file_type::ARCHIVE:
                         UpdateContent_Archive(state, (res_archive*)info->data);
                         break;
+                    case file_type::IMAGE:
+                        UpdateContent_Image(state, (res_image*)info->data);
+                        break;
+                    case file_type::IMAGE_ANIM:
+                        UpdateContent_ImageAnim(state, (res_image_anim*)info->data);
+                        break;
+                    case file_type::FONT:
+                        UpdateContent_Font(state, (res_font*)info->data);
+                        break;
                     default:
                         break;
                 }
-
             }
             else
             {
@@ -156,6 +273,8 @@ void UpdateTabView(app_state* state, tab_info* info)
     {
         RemoveTab(state, info);
     }
+    
+    ImGui::PopID();
 }
 
 void UpdateContextMenu(app_state* state, file_info* info)
@@ -279,6 +398,8 @@ void UpdateOpenDialog(app_state* state)
         }
         else
         {
+            CloseProject(state);
+
             state->project.name = "root";
             state->project.is_directory = true;
             state->project.path = state->project_path;
@@ -299,6 +420,11 @@ void InitAppState(app_state* state)
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags = ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags = ImGuiConfigFlags_DockingEnable;
+
+#ifndef _DEBUG
+    io.IniFilename = nullptr;
+    io.LogFilename = nullptr;
+#endif
 }
 
 void DestroyAppState(app_state* state)
@@ -313,6 +439,9 @@ void DestroyAppState(app_state* state)
 
 bool UpdateAppState(app_state* state)
 {
+    if (state->app_init)
+        rlImGuiEnd(); // Delay ImGui Render by one frame, this allows us to use Raylib functions to render objects on top of ImGui
+
     rlImGuiBegin();
     
     // Base
@@ -392,6 +521,7 @@ bool UpdateAppState(app_state* state)
         if (state->project_close_now)
         {
             CloseProject(state);
+            state->project_close_now = false;
         }
 
         if (state->open_github_page)
@@ -428,7 +558,7 @@ bool UpdateAppState(app_state* state)
     }
     ImGui::End();
     
-    rlImGuiEnd();
+    //rlImGuiEnd();
 
     return (!state->app_exit);
 }

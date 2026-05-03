@@ -7,5 +7,16 @@ file_xa::file_xa()
 
 bool file_xa::BuildImageAnim(res_image_anim* image_anim)
 {
-	return false;
+	if (m_data == nullptr || m_size <= 0)
+		return false;
+
+	bool succ = false;
+	
+	unsigned char* binData;
+	int binDataSize;
+	if (!this->GetFileByName(&binData, &binDataSize, m_data, m_size, "RES.bin"))
+		goto end;
+
+end:
+	return succ;
 }

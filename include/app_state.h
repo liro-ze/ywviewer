@@ -42,6 +42,9 @@ struct app_state
     file_info* selected_file;
 
     std::vector<tab_info> opened_tabs;
+
+    Shader shader;
+    int channel0Loc;
 };
 
 void InitAppState(app_state* state);
