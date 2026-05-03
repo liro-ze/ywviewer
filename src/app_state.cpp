@@ -204,9 +204,7 @@ void UpdateContent_Font(app_state* state, res_font* font)
         if (info != nullptr)
         {
             BeginShaderMode(state->shader);
-
-            int value = info->imgIndex;
-            SetShaderValue(state->shader, state->channel0Loc, &value, SHADER_UNIFORM_INT);
+            SetShaderValue(state->shader, state->channel0Loc, &info->imgIndex, SHADER_UNIFORM_INT);
 
             DrawTexturePro(imageList[0].tex,
                 { (float)info->imgOffsetX, (float)info->imgOffsetY, (float)info->bounds->glyphWidth, (float)info->bounds->glyphHeight },
@@ -217,7 +215,6 @@ void UpdateContent_Font(app_state* state, res_font* font)
             offsetX += info->width;
 
             EndShaderMode();
-
             rlDrawRenderBatchActive();
         }
         else

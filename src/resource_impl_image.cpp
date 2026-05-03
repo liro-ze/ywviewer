@@ -130,7 +130,7 @@ void res_image::DecodeETC1(res_image::Image* img, bool useAlpha)
 
 void res_image::Decode(res_image::Image* img)
 {
-	if (m_format == 0x1B || m_format == 0x1C)
+	if ((m_format & 0x10) != 0)
 		this->m_bitDepth = 32; // Convert ETC1 to RGBA
 
 	switch (m_format)
