@@ -24,7 +24,7 @@ cmake --build build --config Release # or Debug
 ```
 
 # Special Thanks
-Thanks to the many contribators for their past works on Level-5 games to make this software possible:
+Thanks to the many contributors for their past works on Level-5 games to make this software possible:
 - https://github.com/FanTranslatorsInternational/Kuriimu2
 - https://github.com/Ploaj/Metanoia
 - https://github.com/onepiecefreak3/CfgBinEditor
